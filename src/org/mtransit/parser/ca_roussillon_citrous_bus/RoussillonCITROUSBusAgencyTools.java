@@ -55,6 +55,9 @@ public class RoussillonCITROUSBusAgencyTools extends DefaultAgencyTools {
 
 	@Override
 	public String getRouteShortName(GRoute gRoute) {
+		if (gRoute.route_short_name.equals("T-34")) {
+			return "T34";
+		}
 		if (gRoute.route_short_name.equals("115-37")) {
 			return "37";
 		}
