@@ -101,13 +101,6 @@ public class RoussillonCITROUSBusAgencyTools extends DefaultAgencyTools {
 		return ROUTE_COLOR;
 	}
 
-	private static final String ROUTE_TEXT_COLOR = "FFFFFF";
-
-	@Override
-	public String getRouteTextColor(GRoute gRoute) {
-		return ROUTE_TEXT_COLOR;
-	}
-
 	@Override
 	public void setTripHeadsign(MRoute route, MTrip mTrip, GTrip gTrip) {
 		String stationName = cleanTripHeadsign(gTrip.trip_headsign);
