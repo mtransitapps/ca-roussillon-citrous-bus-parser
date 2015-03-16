@@ -100,7 +100,7 @@ public class RoussillonCITROUSBusAgencyTools extends DefaultAgencyTools {
 	@Override
 	public void setTripHeadsign(MRoute route, MTrip mTrip, GTrip gTrip) {
 		String stationName = cleanTripHeadsign(gTrip.trip_headsign);
-		int directionId = Integer.valueOf(gTrip.direction_id);
+		int directionId = gTrip.direction_id;
 		if (mTrip.getRouteId() == 33l) {
 			if (directionId == 0) {
 				stationName = "Stationnement Georges-Gagné";
