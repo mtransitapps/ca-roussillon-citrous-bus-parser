@@ -8,6 +8,7 @@ import org.mtransit.parser.Utils;
 import org.mtransit.parser.gtfs.data.GCalendar;
 import org.mtransit.parser.gtfs.data.GCalendarDate;
 import org.mtransit.parser.gtfs.data.GRoute;
+import org.mtransit.parser.gtfs.data.GSpec;
 import org.mtransit.parser.gtfs.data.GStop;
 import org.mtransit.parser.gtfs.data.GTrip;
 import org.mtransit.parser.mt.data.MAgency;
@@ -97,24 +98,28 @@ public class RoussillonCITROUSBusAgencyTools extends DefaultAgencyTools {
 		return AGENCY_COLOR;
 	}
 
+	private static final String LONGUEUIL_DELSON = "Longueuil-Delson";
+	private static final String DELSON_LONGUEUIL_DELSON = "Delson-Longueuil-Delson";
+	private static final String GARE_STE_CATHERINE = "Gare Ste-Catherine";
+	private static final String STATIONNEMENT_GEORGES_GAGNÉ = "Stationnement Georges-Gagné";
+
 	@Override
-	public void setTripHeadsign(MRoute route, MTrip mTrip, GTrip gTrip) {
+	public void setTripHeadsign(MRoute mRoute, MTrip mTrip, GTrip gTrip, GSpec gtfs) {
 		String stationName = cleanTripHeadsign(gTrip.trip_headsign);
-		int directionId = gTrip.direction_id;
 		if (mTrip.getRouteId() == 33l) {
-			if (directionId == 0) {
-				stationName = "Stationnement Georges-Gagné";
+			if (gTrip.direction_id == 0) {
+				stationName = STATIONNEMENT_GEORGES_GAGNÉ;
 			} else {
-				stationName = "Gare Ste-Catherine";
+				stationName = GARE_STE_CATHERINE;
 			}
 		} else if (mTrip.getRouteId() == 210l) {
-			if (directionId == 0) {
-				stationName = "Delson-Longueuil-Delson";
+			if (gTrip.direction_id == 0) {
+				stationName = DELSON_LONGUEUIL_DELSON;
 			} else {
-				stationName = "Longueuil-Delson";
+				stationName = LONGUEUIL_DELSON;
 			}
 		}
-		mTrip.setHeadsignString(stationName, directionId);
+		mTrip.setHeadsignString(stationName, gTrip.direction_id);
 	}
 
 	private static final Pattern DIRECTION = Pattern.compile("(direction )", Pattern.CASE_INSENSITIVE);
