@@ -13,7 +13,7 @@ import org.mtransit.parser.gtfs.data.GStop;
 import org.mtransit.parser.gtfs.data.GTrip;
 import org.mtransit.parser.mt.data.MAgency;
 import org.mtransit.parser.mt.data.MRoute;
-import org.mtransit.parser.mt.data.MSpec;
+import org.mtransit.parser.CleanUtils;
 import org.mtransit.parser.mt.data.MTrip;
 
 // http://www.amt.qc.ca/developers/
@@ -34,11 +34,11 @@ public class RoussillonCITROUSBusAgencyTools extends DefaultAgencyTools {
 
 	@Override
 	public void start(String[] args) {
-		System.out.printf("Generating CITROUS bus data...\n");
+		System.out.printf("\nGenerating CITROUS bus data...\n");
 		long start = System.currentTimeMillis();
 		this.serviceIds = extractUsefulServiceIds(args, this);
 		super.start(args);
-		System.out.printf("Generating CITROUS bus data... DONE in %s.\n", Utils.getPrettyDuration(System.currentTimeMillis() - start));
+		System.out.printf("\nGenerating CITROUS bus data... DONE in %s.\n", Utils.getPrettyDuration(System.currentTimeMillis() - start));
 	}
 
 	@Override
@@ -70,23 +70,29 @@ public class RoussillonCITROUSBusAgencyTools extends DefaultAgencyTools {
 		return MAgency.ROUTE_TYPE_BUS;
 	}
 
+	private static final String RSN_115_37 = "115-37";
+	private static final String _115 = "115 ";
+	private static final String RSN_37 = "37";
+	private static final String T34 = "T34";
+	private static final String T_34 = "T-34";
+
 	@Override
 	public String getRouteLongName(GRoute gRoute) {
 		String routeLongName = gRoute.route_long_name;
-		routeLongName = MSpec.SAINT.matcher(routeLongName).replaceAll(MSpec.SAINT_REPLACEMENT);
-		if (gRoute.route_short_name.equals("115-37")) {
-			routeLongName = "115 " + routeLongName;
+		routeLongName = CleanUtils.SAINT.matcher(routeLongName).replaceAll(CleanUtils.SAINT_REPLACEMENT);
+		if (RSN_115_37.equals(gRoute.route_short_name)) {
+			routeLongName = _115 + routeLongName;
 		}
-		return MSpec.cleanLabel(routeLongName);
+		return CleanUtils.cleanLabel(routeLongName);
 	}
 
 	@Override
 	public String getRouteShortName(GRoute gRoute) {
-		if (gRoute.route_short_name.equals("T-34")) {
-			return "T34";
+		if (T_34.equals(gRoute.route_short_name)) {
+			return T34;
 		}
-		if (gRoute.route_short_name.equals("115-37")) {
-			return "37";
+		if (RSN_115_37.equals(gRoute.route_short_name)) {
+			return RSN_37;
 		}
 		return super.getRouteShortName(gRoute);
 	}
@@ -128,7 +134,7 @@ public class RoussillonCITROUSBusAgencyTools extends DefaultAgencyTools {
 	@Override
 	public String cleanTripHeadsign(String tripHeadsign) {
 		tripHeadsign = DIRECTION.matcher(tripHeadsign).replaceAll(DIRECTION_REPLACEMENT);
-		return MSpec.cleanLabelFR(tripHeadsign);
+		return CleanUtils.cleanLabelFR(tripHeadsign);
 	}
 
 	private static final Pattern START_WITH_FACE_A = Pattern.compile("^(face à )", Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE);
@@ -149,8 +155,8 @@ public class RoussillonCITROUSBusAgencyTools extends DefaultAgencyTools {
 	@Override
 	public String cleanStopName(String gStopName) {
 		gStopName = AVENUE.matcher(gStopName).replaceAll(AVENUE_REPLACEMENT);
-		gStopName = Utils.replaceAll(gStopName, START_WITH_FACES, MSpec.SPACE);
-		gStopName = Utils.replaceAll(gStopName, SPACE_FACES, MSpec.SPACE);
+		gStopName = Utils.replaceAll(gStopName, START_WITH_FACES, CleanUtils.SPACE);
+		gStopName = Utils.replaceAll(gStopName, SPACE_FACES, CleanUtils.SPACE);
 		return super.cleanStopNameFR(gStopName);
 	}
 
@@ -158,5 +164,4 @@ public class RoussillonCITROUSBusAgencyTools extends DefaultAgencyTools {
 	public int getStopId(GStop gStop) {
 		return Integer.valueOf(getStopCode(gStop)); // using stop code as stop ID
 	}
-
 }
