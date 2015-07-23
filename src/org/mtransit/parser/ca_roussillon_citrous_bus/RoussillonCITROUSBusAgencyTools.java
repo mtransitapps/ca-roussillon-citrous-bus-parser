@@ -78,9 +78,9 @@ public class RoussillonCITROUSBusAgencyTools extends DefaultAgencyTools {
 
 	@Override
 	public String getRouteLongName(GRoute gRoute) {
-		String routeLongName = gRoute.route_long_name;
+		String routeLongName = gRoute.getRouteLongName();
 		routeLongName = CleanUtils.SAINT.matcher(routeLongName).replaceAll(CleanUtils.SAINT_REPLACEMENT);
-		if (RSN_115_37.equals(gRoute.route_short_name)) {
+		if (RSN_115_37.equals(gRoute.getRouteShortName())) {
 			routeLongName = _115 + routeLongName;
 		}
 		return CleanUtils.cleanLabel(routeLongName);
@@ -88,10 +88,10 @@ public class RoussillonCITROUSBusAgencyTools extends DefaultAgencyTools {
 
 	@Override
 	public String getRouteShortName(GRoute gRoute) {
-		if (T_34.equals(gRoute.route_short_name)) {
+		if (T_34.equals(gRoute.getRouteShortName())) {
 			return T34;
 		}
-		if (RSN_115_37.equals(gRoute.route_short_name)) {
+		if (RSN_115_37.equals(gRoute.getRouteShortName())) {
 			return RSN_37;
 		}
 		return super.getRouteShortName(gRoute);
@@ -111,21 +111,21 @@ public class RoussillonCITROUSBusAgencyTools extends DefaultAgencyTools {
 
 	@Override
 	public void setTripHeadsign(MRoute mRoute, MTrip mTrip, GTrip gTrip, GSpec gtfs) {
-		String stationName = cleanTripHeadsign(gTrip.trip_headsign);
+		String stationName = cleanTripHeadsign(gTrip.getTripHeadsign());
 		if (mTrip.getRouteId() == 33l) {
-			if (gTrip.direction_id == 0) {
+			if (gTrip.getDirectionId() == 0) {
 				stationName = STATIONNEMENT_GEORGES_GAGNÉ;
 			} else {
 				stationName = GARE_STE_CATHERINE;
 			}
 		} else if (mTrip.getRouteId() == 210l) {
-			if (gTrip.direction_id == 0) {
+			if (gTrip.getDirectionId() == 0) {
 				stationName = DELSON_LONGUEUIL_DELSON;
 			} else {
 				stationName = LONGUEUIL_DELSON;
 			}
 		}
-		mTrip.setHeadsignString(stationName, gTrip.direction_id);
+		mTrip.setHeadsignString(stationName, gTrip.getDirectionId());
 	}
 
 	private static final Pattern DIRECTION = Pattern.compile("(direction )", Pattern.CASE_INSENSITIVE);
