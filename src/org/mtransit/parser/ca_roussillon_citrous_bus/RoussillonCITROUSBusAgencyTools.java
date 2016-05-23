@@ -181,6 +181,11 @@ public class RoussillonCITROUSBusAgencyTools extends DefaultAgencyTools {
 				mTrip.setHeadsignString(AM, mTrip.getHeadsignId());
 				return true;
 			}
+		} else if (mTrip.getRouteId() == 37l) {
+			if (mTrip.getHeadsignId() == 0) {
+				mTrip.setHeadsignString("Stat Incitatif Georges-Gagné", mTrip.getHeadsignId());
+				return true;
+			}
 		} else if (mTrip.getRouteId() == 200l) {
 			if (mTrip.getHeadsignId() == 1) {
 				mTrip.setHeadsignString(DELSON, mTrip.getHeadsignId());
