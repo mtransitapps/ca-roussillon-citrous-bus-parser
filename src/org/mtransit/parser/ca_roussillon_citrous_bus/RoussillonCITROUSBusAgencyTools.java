@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.mtransit.parser.CleanUtils;
@@ -77,6 +78,19 @@ public class RoussillonCITROUSBusAgencyTools extends DefaultAgencyTools {
 	@Override
 	public Integer getAgencyRouteType() {
 		return MAgency.ROUTE_TYPE_BUS;
+	}
+
+	private static final Pattern DIGITS = Pattern.compile("[\\d]+");
+
+	@Override
+	public long getRouteId(GRoute gRoute) {
+		if (!Utils.isDigitsOnly(gRoute.getRouteId())) {
+			Matcher matcher = DIGITS.matcher(gRoute.getRouteId());
+			if (matcher.find()) {
+				return Long.parseLong(matcher.group());
+			}
+		}
+		return super.getRouteId(gRoute);
 	}
 
 	private static final String RSN_115_37 = "115-37";
