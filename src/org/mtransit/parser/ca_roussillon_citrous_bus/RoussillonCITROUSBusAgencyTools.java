@@ -26,8 +26,8 @@ import org.mtransit.parser.mt.data.MRoute;
 import org.mtransit.parser.mt.data.MTrip;
 import org.mtransit.parser.mt.data.MTripStop;
 
-// http://www.amt.qc.ca/developers/
-// http://www.amt.qc.ca/xdata/citrous/google_transit.zip
+// https://rtm.quebec/en/about/open-data
+// https://rtm.quebec/xdata/citrous/google_transit.zip
 public class RoussillonCITROUSBusAgencyTools extends DefaultAgencyTools {
 
 	public static void main(String[] args) {
