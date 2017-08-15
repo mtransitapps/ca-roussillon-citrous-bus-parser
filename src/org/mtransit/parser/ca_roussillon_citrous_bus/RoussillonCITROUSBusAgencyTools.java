@@ -1,6 +1,7 @@
 package org.mtransit.parser.ca_roussillon_citrous_bus;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -76,6 +77,11 @@ public class RoussillonCITROUSBusAgencyTools extends DefaultAgencyTools {
 	}
 
 	@Override
+	public boolean excludeRoute(GRoute gRoute) {
+		return super.excludeRoute(gRoute);
+	}
+
+	@Override
 	public Integer getAgencyRouteType() {
 		return MAgency.ROUTE_TYPE_BUS;
 	}
@@ -129,11 +135,30 @@ public class RoussillonCITROUSBusAgencyTools extends DefaultAgencyTools {
 
 	private static final String AM = "AM";
 	private static final String PM = "PM";
-	private static final String DELSON = "Delson";
 
 	private static HashMap<Long, RouteTripSpec> ALL_ROUTE_TRIPS2;
 	static {
 		HashMap<Long, RouteTripSpec> map2 = new HashMap<Long, RouteTripSpec>();
+		map2.put(30L, new RouteTripSpec(30L, // A + B
+				0, MTrip.HEADSIGN_TYPE_STRING, "B Ste-Catherine - St-Constant", // Ste-Catherine => St-Constant
+				1, MTrip.HEADSIGN_TYPE_STRING, "A St-Constant - Ste-Catherine") // St-Constant => Ste-Catherine
+				.addTripSort(0, //
+						Arrays.asList(new String[] { //
+						"DEL9A", // Stationnement Incitatif Georges-Gagné
+								"SCA21A", // ++
+								"SCS19A", // rue St-Pierre / rue Perras
+								"DEL25A", // ++
+								"DEL9A", // Stationnement Incitatif Georges-Gagné
+						})) //
+				.addTripSort(1, //
+						Arrays.asList(new String[] { //
+						"DEL9A", // Stationnement Incitatif Georges-Gagn
+								"DEL25D", // ++
+								"SCS19C", // rue St-Pierre / rue Perras
+								"SCA21C", // ++
+								"DEL9A", // Stationnement Incitatif Georges-Gagné
+						})) //
+				.compileBothTripSort());
 		ALL_ROUTE_TRIPS2 = map2;
 	}
 
@@ -187,25 +212,6 @@ public class RoussillonCITROUSBusAgencyTools extends DefaultAgencyTools {
 
 	@Override
 	public boolean mergeHeadsign(MTrip mTrip, MTrip mTripToMerge) {
-		if (mTrip.getRouteId() == 33l) {
-			if (mTrip.getHeadsignId() == 0) {
-				mTrip.setHeadsignString(PM, mTrip.getHeadsignId());
-				return true;
-			} else if (mTrip.getHeadsignId() == 1) {
-				mTrip.setHeadsignString(AM, mTrip.getHeadsignId());
-				return true;
-			}
-		} else if (mTrip.getRouteId() == 37l) {
-			if (mTrip.getHeadsignId() == 0) {
-				mTrip.setHeadsignString("Stat Incitatif Georges-Gagné", mTrip.getHeadsignId());
-				return true;
-			}
-		} else if (mTrip.getRouteId() == 200l) {
-			if (mTrip.getHeadsignId() == 1) {
-				mTrip.setHeadsignString(DELSON, mTrip.getHeadsignId());
-				return true;
-			}
-		}
 		System.out.printf("\nUnexpected trips to merge %s & %s!\n", mTrip, mTripToMerge);
 		System.exit(-1);
 		return false;
