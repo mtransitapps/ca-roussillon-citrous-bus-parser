@@ -198,15 +198,6 @@ public class RoussillonCITROUSBusAgencyTools extends DefaultAgencyTools {
 			mTrip.setHeadsignString(PM, gTrip.getDirectionId());
 			return;
 		}
-		if (mTrip.getRouteId() == 210l) {
-			if (gTrip.getDirectionId() == 0) {
-				mTrip.setHeadsignString(AM, gTrip.getDirectionId());
-				return;
-			} else if (gTrip.getDirectionId() == 1) {
-				mTrip.setHeadsignString(PM, gTrip.getDirectionId());
-				return;
-			}
-		}
 		mTrip.setHeadsignString(cleanTripHeadsign(gTrip.getTripHeadsign()), gTrip.getDirectionId());
 	}
 
