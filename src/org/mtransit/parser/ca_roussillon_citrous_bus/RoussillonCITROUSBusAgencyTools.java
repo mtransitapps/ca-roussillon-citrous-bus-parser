@@ -148,7 +148,7 @@ public class RoussillonCITROUSBusAgencyTools extends DefaultAgencyTools {
 								"SCA21A", // ++
 								"SCS19A", // rue St-Pierre / rue Perras
 								"DEL25A", // ++
-								"DEL9A", // Stationnement Incitatif Georges-Gagné
+								"DEL9C", // Stationnement Incitatif Georges-Gagné
 						})) //
 				.addTripSort(1, //
 						Arrays.asList(new String[] { //
@@ -156,7 +156,7 @@ public class RoussillonCITROUSBusAgencyTools extends DefaultAgencyTools {
 								"DEL25D", // ++
 								"SCS19C", // rue St-Pierre / rue Perras
 								"SCA21C", // ++
-								"DEL9A", // Stationnement Incitatif Georges-Gagné
+								"DEL9C", // Stationnement Incitatif Georges-Gagné
 						})) //
 				.compileBothTripSort());
 		ALL_ROUTE_TRIPS2 = map2;
