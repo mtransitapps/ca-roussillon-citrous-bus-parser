@@ -126,7 +126,7 @@ public class RoussillonCITROUSBusAgencyTools extends DefaultAgencyTools {
 		return super.getRouteShortName(gRoute);
 	}
 
-	private static final String AGENCY_COLOR = "6FB43F";
+	private static final String AGENCY_COLOR = "1F1F1F"; // DARK GRAY (from GTFS)
 
 	@Override
 	public String getAgencyColor() {
@@ -165,7 +165,7 @@ public class RoussillonCITROUSBusAgencyTools extends DefaultAgencyTools {
 	@Override
 	public int compareEarly(long routeId, List<MTripStop> list1, List<MTripStop> list2, MTripStop ts1, MTripStop ts2, GStop ts1GStop, GStop ts2GStop) {
 		if (ALL_ROUTE_TRIPS2.containsKey(routeId)) {
-			return ALL_ROUTE_TRIPS2.get(routeId).compare(routeId, list1, list2, ts1, ts2, ts1GStop, ts2GStop);
+			return ALL_ROUTE_TRIPS2.get(routeId).compare(routeId, list1, list2, ts1, ts2, ts1GStop, ts2GStop, this);
 		}
 		return super.compareEarly(routeId, list1, list2, ts1, ts2, ts1GStop, ts2GStop);
 	}
@@ -181,7 +181,7 @@ public class RoussillonCITROUSBusAgencyTools extends DefaultAgencyTools {
 	@Override
 	public Pair<Long[], Integer[]> splitTripStop(MRoute mRoute, GTrip gTrip, GTripStop gTripStop, ArrayList<MTrip> splitTrips, GSpec routeGTFS) {
 		if (ALL_ROUTE_TRIPS2.containsKey(mRoute.getId())) {
-			return SplitUtils.splitTripStop(mRoute, gTrip, gTripStop, routeGTFS, ALL_ROUTE_TRIPS2.get(mRoute.getId()));
+			return SplitUtils.splitTripStop(mRoute, gTrip, gTripStop, routeGTFS, ALL_ROUTE_TRIPS2.get(mRoute.getId()), this);
 		}
 		return super.splitTripStop(mRoute, gTrip, gTripStop, splitTrips, routeGTFS);
 	}
