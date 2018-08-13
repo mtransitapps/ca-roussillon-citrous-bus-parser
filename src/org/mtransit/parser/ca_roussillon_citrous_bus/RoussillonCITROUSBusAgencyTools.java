@@ -93,15 +93,25 @@ public class RoussillonCITROUSBusAgencyTools extends DefaultAgencyTools {
 
 	private static final Pattern DIGITS = Pattern.compile("[\\d]+");
 
+	private static final String T = "T";
+
+	private static final long RID_STARTS_WITH_T = 20_000L;
+
 	@Override
 	public long getRouteId(GRoute gRoute) {
-		if (!Utils.isDigitsOnly(gRoute.getRouteId())) {
-			Matcher matcher = DIGITS.matcher(gRoute.getRouteId());
+		if (!Utils.isDigitsOnly(gRoute.getRouteShortName())) {
+			Matcher matcher = DIGITS.matcher(gRoute.getRouteShortName());
 			if (matcher.find()) {
-				return Long.parseLong(matcher.group());
+				int digits = Integer.parseInt(matcher.group());
+				if (gRoute.getRouteShortName().startsWith(T)) {
+					return RID_STARTS_WITH_T + digits;
+				}
 			}
+			System.out.printf("\nUnexpected route ID for %s!\n", gRoute);
+			System.exit(-1);
+			return -1L;
 		}
-		return super.getRouteId(gRoute);
+		return Long.parseLong(gRoute.getRouteShortName());
 	}
 
 	private static final String RSN_115_37 = "115-37";
@@ -149,19 +159,27 @@ public class RoussillonCITROUSBusAgencyTools extends DefaultAgencyTools {
 				1, MTrip.HEADSIGN_TYPE_STRING, "A St-Constant - Ste-Catherine") // St-Constant => Ste-Catherine
 				.addTripSort(0, //
 						Arrays.asList(new String[] { //
-						"DEL9A", // Stationnement Incitatif Georges-Gagné
-								"SCA21A", // ++
-								"SCS19A", // rue St-Pierre / rue Perras
-								"DEL25A", // ++
-								"DEL9C", // Stationnement Incitatif Georges-Gagné
+						"76080", // "DEL9A", // xx Stationnement Incitatif Georges-Gagné
+								"76014", // "SCA21A", // !=
+								"76204", // "SCS45D", // !=
+								"76189", // "SCS57C", // !=
+								"76439", // ++
+								"76239", // "SCS54B", // !=
+								"76136", // "SCS19A", // == rue St-Pierre / rue Perras
+								"76145", // "SCS129A", // ==
+								"76146", // "DEL47D", // !=
+								"76277", // "DEL25A", // !=
+								"76114", // "SCS55A", // !=
+								"76116", // "SCS57A", // !=
+								"76080", // "DEL9A", // xx Stationnement Incitatif Georges-Gagné
 						})) //
 				.addTripSort(1, //
 						Arrays.asList(new String[] { //
-						"DEL9A", // Stationnement Incitatif Georges-Gagn
-								"DEL25D", // ++
-								"SCS19C", // rue St-Pierre / rue Perras
-								"SCA21C", // ++
-								"DEL9C", // Stationnement Incitatif Georges-Gagné
+						"76080", // "DEL9A", // xx Stationnement Incitatif Georges-Gagné
+								"76001", // "DEL25D", // !=
+								"76010", // "SCS19C", // rue St-Pierre / rue Perras
+								"76044", // "SCA21C", // !=
+								"76080", // "DEL9A", // xx Stationnement Incitatif Georges-Gagné
 						})) //
 				.compileBothTripSort());
 		ALL_ROUTE_TRIPS2 = map2;
