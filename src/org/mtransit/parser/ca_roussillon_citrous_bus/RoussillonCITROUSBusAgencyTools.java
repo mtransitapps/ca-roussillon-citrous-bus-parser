@@ -154,34 +154,6 @@ public class RoussillonCITROUSBusAgencyTools extends DefaultAgencyTools {
 	private static HashMap<Long, RouteTripSpec> ALL_ROUTE_TRIPS2;
 	static {
 		HashMap<Long, RouteTripSpec> map2 = new HashMap<Long, RouteTripSpec>();
-		map2.put(30L, new RouteTripSpec(30L, // A + B
-				0, MTrip.HEADSIGN_TYPE_STRING, "B Ste-Catherine - St-Constant", // Ste-Catherine => St-Constant
-				1, MTrip.HEADSIGN_TYPE_STRING, "A St-Constant - Ste-Catherine") // St-Constant => Ste-Catherine
-				.addTripSort(0, //
-						Arrays.asList(new String[] { //
-						"76080", // "DEL9A", // xx Stationnement Incitatif Georges-Gagné
-								"76014", // "SCA21A", // !=
-								"76204", // "SCS45D", // !=
-								"76189", // "SCS57C", // !=
-								"76439", // ++
-								"76239", // "SCS54B", // !=
-								"76136", // "SCS19A", // == rue St-Pierre / rue Perras
-								"76145", // "SCS129A", // ==
-								"76146", // "DEL47D", // !=
-								"76277", // "DEL25A", // !=
-								"76114", // "SCS55A", // !=
-								"76116", // "SCS57A", // !=
-								"76080", // "DEL9A", // xx Stationnement Incitatif Georges-Gagné
-						})) //
-				.addTripSort(1, //
-						Arrays.asList(new String[] { //
-						"76080", // "DEL9A", // xx Stationnement Incitatif Georges-Gagné
-								"76001", // "DEL25D", // !=
-								"76010", // "SCS19C", // rue St-Pierre / rue Perras
-								"76044", // "SCA21C", // !=
-								"76080", // "DEL9A", // xx Stationnement Incitatif Georges-Gagné
-						})) //
-				.compileBothTripSort());
 		ALL_ROUTE_TRIPS2 = map2;
 	}
 
@@ -226,6 +198,23 @@ public class RoussillonCITROUSBusAgencyTools extends DefaultAgencyTools {
 
 	@Override
 	public boolean mergeHeadsign(MTrip mTrip, MTrip mTripToMerge) {
+		List<String> headsignsValues = Arrays.asList(mTrip.getHeadsignValue(), mTripToMerge.getHeadsignValue());
+		if (mTrip.getRouteId() == 30L) {
+			if (Arrays.asList( //
+					"Stat Incitatif George-Gagné", //
+					"St-Constant" //
+			).containsAll(headsignsValues)) {
+				mTrip.setHeadsignString("St-Constant", mTrip.getHeadsignId());
+				return true;
+			}
+			if (Arrays.asList( //
+					"Exporail", //
+					"Ste-Catherine" //
+			).containsAll(headsignsValues)) {
+				mTrip.setHeadsignString("Ste-Catherine", mTrip.getHeadsignId());
+				return true;
+			}
+		}
 		System.out.printf("\nUnexpected trips to merge %s & %s!\n", mTrip, mTripToMerge);
 		System.exit(-1);
 		return false;
