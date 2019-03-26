@@ -209,6 +209,7 @@ public class RoussillonCITROUSBusAgencyTools extends DefaultAgencyTools {
 			}
 			if (Arrays.asList( //
 					"Exporail", //
+					"Stat Incitatif George-Gagné", //
 					"Ste-Catherine" //
 			).containsAll(headsignsValues)) {
 				mTrip.setHeadsignString("Ste-Catherine", mTrip.getHeadsignId());
