@@ -215,6 +215,14 @@ public class RoussillonCITROUSBusAgencyTools extends DefaultAgencyTools {
 				mTrip.setHeadsignString("Ste-Catherine", mTrip.getHeadsignId());
 				return true;
 			}
+		} else if (mTrip.getRouteId() == 200L) {
+			if (Arrays.asList( //
+					"PM", // <>
+					"AM" //
+			).containsAll(headsignsValues)) {
+				mTrip.setHeadsignString("AM", mTrip.getHeadsignId());
+				return true;
+			}
 		}
 		System.out.printf("\nUnexpected trips to merge %s & %s!\n", mTrip, mTripToMerge);
 		System.exit(-1);
