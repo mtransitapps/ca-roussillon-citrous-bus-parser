@@ -11,6 +11,7 @@ import java.util.regex.Pattern;
 
 import org.mtransit.parser.CleanUtils;
 import org.mtransit.parser.DefaultAgencyTools;
+import org.mtransit.parser.MTLog;
 import org.mtransit.parser.Pair;
 import org.mtransit.parser.SplitUtils;
 import org.mtransit.parser.SplitUtils.RouteTripSpec;
@@ -45,11 +46,11 @@ public class RoussillonCITROUSBusAgencyTools extends DefaultAgencyTools {
 
 	@Override
 	public void start(String[] args) {
-		System.out.printf("\nGenerating CITROUS bus data...");
+		MTLog.log("Generating CITROUS bus data...");
 		long start = System.currentTimeMillis();
 		this.serviceIds = extractUsefulServiceIds(args, this);
 		super.start(args);
-		System.out.printf("\nGenerating CITROUS bus data... DONE in %s.\n", Utils.getPrettyDuration(System.currentTimeMillis() - start));
+		MTLog.log("Generating CITROUS bus data... DONE in %s.", Utils.getPrettyDuration(System.currentTimeMillis() - start));
 	}
 
 	@Override
@@ -82,11 +83,6 @@ public class RoussillonCITROUSBusAgencyTools extends DefaultAgencyTools {
 	}
 
 	@Override
-	public boolean excludeRoute(GRoute gRoute) {
-		return super.excludeRoute(gRoute);
-	}
-
-	@Override
 	public Integer getAgencyRouteType() {
 		return MAgency.ROUTE_TYPE_BUS;
 	}
@@ -107,9 +103,7 @@ public class RoussillonCITROUSBusAgencyTools extends DefaultAgencyTools {
 					return RID_STARTS_WITH_T + digits;
 				}
 			}
-			System.out.printf("\nUnexpected route ID for %s!\n", gRoute);
-			System.exit(-1);
-			return -1L;
+			throw new MTLog.Fatal("Unexpected route ID for %s!", gRoute);
 		}
 		return Long.parseLong(gRoute.getRouteShortName());
 	}
@@ -151,9 +145,9 @@ public class RoussillonCITROUSBusAgencyTools extends DefaultAgencyTools {
 	private static final String AM = "AM";
 	private static final String PM = "PM";
 
-	private static HashMap<Long, RouteTripSpec> ALL_ROUTE_TRIPS2;
+	private static final HashMap<Long, RouteTripSpec> ALL_ROUTE_TRIPS2;
 	static {
-		HashMap<Long, RouteTripSpec> map2 = new HashMap<Long, RouteTripSpec>();
+		HashMap<Long, RouteTripSpec> map2 = new HashMap<>();
 		ALL_ROUTE_TRIPS2 = map2;
 	}
 
@@ -193,7 +187,30 @@ public class RoussillonCITROUSBusAgencyTools extends DefaultAgencyTools {
 			mTrip.setHeadsignString(PM, gTrip.getDirectionId());
 			return;
 		}
-		mTrip.setHeadsignString(cleanTripHeadsign(gTrip.getTripHeadsign()), gTrip.getDirectionId());
+		if (true) {
+			if (mRoute.getId() == 200L) {
+				if (gTrip.getTripHeadsign().equals("Métro Angrignon - Cégep André-Laurendeau")) {
+					mTrip.setHeadsignString(
+						cleanTripHeadsign(gTrip.getTripHeadsign()) + " " + gTrip.getDirectionIdOrDefault(),
+						gTrip.getDirectionIdOrDefault()
+					);
+					return;
+				}
+			}
+			if (mRoute.getId() == 210L) {
+				if (gTrip.getTripHeadsign().equals("Métro Longueuil - Cégep É-Montpetit")) {
+					mTrip.setHeadsignString(
+						cleanTripHeadsign(gTrip.getTripHeadsign()) + " " + gTrip.getDirectionIdOrDefault(),
+						gTrip.getDirectionIdOrDefault()
+					);
+					return;
+				}
+			}
+		}
+		mTrip.setHeadsignString(
+			cleanTripHeadsign(gTrip.getTripHeadsign()),
+			gTrip.getDirectionIdOrDefault()
+		);
 	}
 
 	@Override
@@ -224,9 +241,7 @@ public class RoussillonCITROUSBusAgencyTools extends DefaultAgencyTools {
 				return true;
 			}
 		}
-		System.out.printf("\nUnexpected trips to merge %s & %s!\n", mTrip, mTripToMerge);
-		System.exit(-1);
-		return false;
+		throw new MTLog.Fatal("Unexpected trips to merge %s & %s!", mTrip, mTripToMerge);
 	}
 
 	private static final Pattern DIRECTION = Pattern.compile("(direction )", Pattern.CASE_INSENSITIVE);
@@ -239,11 +254,11 @@ public class RoussillonCITROUSBusAgencyTools extends DefaultAgencyTools {
 		return CleanUtils.cleanLabelFR(tripHeadsign);
 	}
 
-	private static final Pattern START_WITH_FACE_A = Pattern.compile("^(face à )", Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE);
+	private static final Pattern START_WITH_FACE_A = Pattern.compile("^(face à )", Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE | Pattern.CANON_EQ);
 	private static final Pattern START_WITH_FACE_AU = Pattern.compile("^(face au )", Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE);
 	private static final Pattern START_WITH_FACE = Pattern.compile("^(face )", Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE);
 
-	private static final Pattern SPACE_FACE_A = Pattern.compile("( face à )", Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE);
+	private static final Pattern SPACE_FACE_A = Pattern.compile("( face à )", Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE | Pattern.CANON_EQ);
 	private static final Pattern SPACE_WITH_FACE_AU = Pattern.compile("( face au )", Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE);
 	private static final Pattern SPACE_WITH_FACE = Pattern.compile("( face )", Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE);
 
