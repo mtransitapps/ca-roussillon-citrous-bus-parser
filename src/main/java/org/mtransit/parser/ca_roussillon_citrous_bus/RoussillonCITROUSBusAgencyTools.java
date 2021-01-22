@@ -1,20 +1,10 @@
 package org.mtransit.parser.ca_roussillon_citrous_bus;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.mtransit.parser.CleanUtils;
 import org.mtransit.parser.DefaultAgencyTools;
 import org.mtransit.parser.MTLog;
-import org.mtransit.parser.Pair;
-import org.mtransit.parser.SplitUtils;
-import org.mtransit.parser.SplitUtils.RouteTripSpec;
 import org.mtransit.parser.Utils;
 import org.mtransit.parser.gtfs.data.GCalendar;
 import org.mtransit.parser.gtfs.data.GCalendarDate;
@@ -22,17 +12,20 @@ import org.mtransit.parser.gtfs.data.GRoute;
 import org.mtransit.parser.gtfs.data.GSpec;
 import org.mtransit.parser.gtfs.data.GStop;
 import org.mtransit.parser.gtfs.data.GTrip;
-import org.mtransit.parser.gtfs.data.GTripStop;
 import org.mtransit.parser.mt.data.MAgency;
 import org.mtransit.parser.mt.data.MRoute;
 import org.mtransit.parser.mt.data.MTrip;
-import org.mtransit.parser.mt.data.MTripStop;
+
+import java.util.HashSet;
+import java.util.Locale;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 // https://exo.quebec/en/about/open-data
 // https://exo.quebec/xdata/citrous/google_transit.zip
 public class RoussillonCITROUSBusAgencyTools extends DefaultAgencyTools {
 
-	public static void main(String[] args) {
+	public static void main(@Nullable String[] args) {
 		if (args == null || args.length == 0) {
 			args = new String[3];
 			args[0] = "input/gtfs.zip";
@@ -42,46 +35,48 @@ public class RoussillonCITROUSBusAgencyTools extends DefaultAgencyTools {
 		new RoussillonCITROUSBusAgencyTools().start(args);
 	}
 
-	private HashSet<String> serviceIds;
+	@Nullable
+	private HashSet<Integer> serviceIdInts;
 
 	@Override
-	public void start(String[] args) {
+	public void start(@NotNull String[] args) {
 		MTLog.log("Generating CITROUS bus data...");
 		long start = System.currentTimeMillis();
-		this.serviceIds = extractUsefulServiceIds(args, this);
+		this.serviceIdInts = extractUsefulServiceIdInts(args, this, true);
 		super.start(args);
 		MTLog.log("Generating CITROUS bus data... DONE in %s.", Utils.getPrettyDuration(System.currentTimeMillis() - start));
 	}
 
 	@Override
 	public boolean excludingAll() {
-		return this.serviceIds != null && this.serviceIds.isEmpty();
+		return this.serviceIdInts != null && this.serviceIdInts.isEmpty();
 	}
 
 	@Override
-	public boolean excludeCalendar(GCalendar gCalendar) {
-		if (this.serviceIds != null) {
-			return excludeUselessCalendar(gCalendar, this.serviceIds);
+	public boolean excludeCalendar(@NotNull GCalendar gCalendar) {
+		if (this.serviceIdInts != null) {
+			return excludeUselessCalendarInt(gCalendar, this.serviceIdInts);
 		}
 		return super.excludeCalendar(gCalendar);
 	}
 
 	@Override
-	public boolean excludeCalendarDate(GCalendarDate gCalendarDates) {
-		if (this.serviceIds != null) {
-			return excludeUselessCalendarDate(gCalendarDates, this.serviceIds);
+	public boolean excludeCalendarDate(@NotNull GCalendarDate gCalendarDates) {
+		if (this.serviceIdInts != null) {
+			return excludeUselessCalendarDateInt(gCalendarDates, this.serviceIdInts);
 		}
 		return super.excludeCalendarDate(gCalendarDates);
 	}
 
 	@Override
-	public boolean excludeTrip(GTrip gTrip) {
-		if (this.serviceIds != null) {
-			return excludeUselessTrip(gTrip, this.serviceIds);
+	public boolean excludeTrip(@NotNull GTrip gTrip) {
+		if (this.serviceIdInts != null) {
+			return excludeUselessTripInt(gTrip, this.serviceIdInts);
 		}
 		return super.excludeTrip(gTrip);
 	}
 
+	@NotNull
 	@Override
 	public Integer getAgencyRouteType() {
 		return MAgency.ROUTE_TYPE_BUS;
@@ -94,7 +89,7 @@ public class RoussillonCITROUSBusAgencyTools extends DefaultAgencyTools {
 	private static final long RID_STARTS_WITH_T = 20_000L;
 
 	@Override
-	public long getRouteId(GRoute gRoute) {
+	public long getRouteId(@NotNull GRoute gRoute) {
 		if (!Utils.isDigitsOnly(gRoute.getRouteShortName())) {
 			Matcher matcher = DIGITS.matcher(gRoute.getRouteShortName());
 			if (matcher.find()) {
@@ -114,18 +109,20 @@ public class RoussillonCITROUSBusAgencyTools extends DefaultAgencyTools {
 	private static final String T34 = "T34";
 	private static final String T_34 = "T-34";
 
+	@NotNull
 	@Override
-	public String getRouteLongName(GRoute gRoute) {
-		String routeLongName = gRoute.getRouteLongName();
+	public String getRouteLongName(@NotNull GRoute gRoute) {
+		String routeLongName = gRoute.getRouteLongNameOrDefault();
 		routeLongName = CleanUtils.SAINT.matcher(routeLongName).replaceAll(CleanUtils.SAINT_REPLACEMENT);
 		if (RSN_115_37.equals(gRoute.getRouteShortName())) {
 			routeLongName = _115 + routeLongName;
 		}
-		return CleanUtils.cleanLabel(routeLongName);
+		return CleanUtils.cleanLabelFR(routeLongName);
 	}
 
+	@Nullable
 	@Override
-	public String getRouteShortName(GRoute gRoute) {
+	public String getRouteShortName(@NotNull GRoute gRoute) {
 		if (T_34.equals(gRoute.getRouteShortName())) {
 			return T34;
 		}
@@ -137,6 +134,7 @@ public class RoussillonCITROUSBusAgencyTools extends DefaultAgencyTools {
 
 	private static final String AGENCY_COLOR = "1F1F1F"; // DARK GRAY (from GTFS)
 
+	@NotNull
 	@Override
 	public String getAgencyColor() {
 		return AGENCY_COLOR;
@@ -145,111 +143,82 @@ public class RoussillonCITROUSBusAgencyTools extends DefaultAgencyTools {
 	private static final String AM = "AM";
 	private static final String PM = "PM";
 
-	private static final HashMap<Long, RouteTripSpec> ALL_ROUTE_TRIPS2;
-	static {
-		HashMap<Long, RouteTripSpec> map2 = new HashMap<>();
-		ALL_ROUTE_TRIPS2 = map2;
-	}
-
 	@Override
-	public int compareEarly(long routeId, List<MTripStop> list1, List<MTripStop> list2, MTripStop ts1, MTripStop ts2, GStop ts1GStop, GStop ts2GStop) {
-		if (ALL_ROUTE_TRIPS2.containsKey(routeId)) {
-			return ALL_ROUTE_TRIPS2.get(routeId).compare(routeId, list1, list2, ts1, ts2, ts1GStop, ts2GStop, this);
-		}
-		return super.compareEarly(routeId, list1, list2, ts1, ts2, ts1GStop, ts2GStop);
-	}
-
-	@Override
-	public ArrayList<MTrip> splitTrip(MRoute mRoute, GTrip gTrip, GSpec gtfs) {
-		if (ALL_ROUTE_TRIPS2.containsKey(mRoute.getId())) {
-			return ALL_ROUTE_TRIPS2.get(mRoute.getId()).getAllTrips();
-		}
-		return super.splitTrip(mRoute, gTrip, gtfs);
-	}
-
-	@Override
-	public Pair<Long[], Integer[]> splitTripStop(MRoute mRoute, GTrip gTrip, GTripStop gTripStop, ArrayList<MTrip> splitTrips, GSpec routeGTFS) {
-		if (ALL_ROUTE_TRIPS2.containsKey(mRoute.getId())) {
-			return SplitUtils.splitTripStop(mRoute, gTrip, gTripStop, routeGTFS, ALL_ROUTE_TRIPS2.get(mRoute.getId()), this);
-		}
-		return super.splitTripStop(mRoute, gTrip, gTripStop, splitTrips, routeGTFS);
-	}
-
-	@Override
-	public void setTripHeadsign(MRoute mRoute, MTrip mTrip, GTrip gTrip, GSpec gtfs) {
-		if (ALL_ROUTE_TRIPS2.containsKey(mRoute.getId())) {
-			return; // split
-		}
-		if (gTrip.getTripHeadsign().toUpperCase(Locale.ENGLISH).endsWith(AM)) {
-			mTrip.setHeadsignString(AM, gTrip.getDirectionId());
-			return;
-		} else if (gTrip.getTripHeadsign().toUpperCase(Locale.ENGLISH).endsWith(PM)) {
-			mTrip.setHeadsignString(PM, gTrip.getDirectionId());
-			return;
-		}
-		if (true) {
-			if (mRoute.getId() == 200L) {
-				if (gTrip.getTripHeadsign().equals("Métro Angrignon - Cégep André-Laurendeau")) {
-					mTrip.setHeadsignString(
-						cleanTripHeadsign(gTrip.getTripHeadsign()) + " " + gTrip.getDirectionIdOrDefault(),
+	public void setTripHeadsign(@NotNull MRoute mRoute, @NotNull MTrip mTrip, @NotNull GTrip gTrip, @NotNull GSpec gtfs) {
+		final String tripHeadsign = gTrip.getTripHeadsignOrDefault();
+		if (mRoute.getId() == 200L) {
+			if (tripHeadsign.equals("Métro Angrignon - Cégep André-Laurendeau")
+					|| tripHeadsign.equals("Angrignon - André-Laurendeau")) {
+				mTrip.setHeadsignString(
+						cleanTripHeadsign(tripHeadsign) + " " + gTrip.getDirectionIdOrDefault(),
 						gTrip.getDirectionIdOrDefault()
-					);
-					return;
-				}
+				);
+				return;
 			}
-			if (mRoute.getId() == 210L) {
-				if (gTrip.getTripHeadsign().equals("Métro Longueuil - Cégep É-Montpetit")) {
-					mTrip.setHeadsignString(
-						cleanTripHeadsign(gTrip.getTripHeadsign()) + " " + gTrip.getDirectionIdOrDefault(),
+		}
+		if (mRoute.getId() == 210L) {
+			if (tripHeadsign.equals("Métro Longueuil - Cégep É-Montpetit")
+					|| tripHeadsign.equals("Longueuil - Édouard-Montpetit")) {
+				mTrip.setHeadsignString(
+						cleanTripHeadsign(tripHeadsign) + " " + gTrip.getDirectionIdOrDefault(),
 						gTrip.getDirectionIdOrDefault()
-					);
-					return;
-				}
+				);
+				return;
 			}
 		}
 		mTrip.setHeadsignString(
-			cleanTripHeadsign(gTrip.getTripHeadsign()),
-			gTrip.getDirectionIdOrDefault()
+				cleanTripHeadsign(tripHeadsign),
+				gTrip.getDirectionIdOrDefault()
 		);
 	}
 
+	@NotNull
 	@Override
-	public boolean mergeHeadsign(MTrip mTrip, MTrip mTripToMerge) {
-		List<String> headsignsValues = Arrays.asList(mTrip.getHeadsignValue(), mTripToMerge.getHeadsignValue());
-		if (mTrip.getRouteId() == 30L) {
-			if (Arrays.asList( //
-					"Stat Incitatif George-Gagné", //
-					"St-Constant" //
-			).containsAll(headsignsValues)) {
-				mTrip.setHeadsignString("St-Constant", mTrip.getHeadsignId());
-				return true;
-			}
-			if (Arrays.asList( //
-					"Exporail", //
-					"Stat Incitatif George-Gagné", //
-					"Ste-Catherine" //
-			).containsAll(headsignsValues)) {
-				mTrip.setHeadsignString("Ste-Catherine", mTrip.getHeadsignId());
-				return true;
-			}
-		} else if (mTrip.getRouteId() == 200L) {
-			if (Arrays.asList( //
-					"PM", // <>
-					"AM" //
-			).containsAll(headsignsValues)) {
-				mTrip.setHeadsignString("AM", mTrip.getHeadsignId());
-				return true;
-			}
+	public String cleanDirectionHeadsign(boolean fromStopName, @NotNull String directionHeadSign) {
+		final String directionHeadSignUC = directionHeadSign.toUpperCase(Locale.ENGLISH);
+		if (directionHeadSignUC.endsWith(AM)) {
+			return AM;
+		} else if (directionHeadSignUC.endsWith(PM)) {
+			return PM;
 		}
+		return super.cleanDirectionHeadsign(fromStopName, directionHeadSign);
+	}
+
+	@Override
+	public boolean directionFinderEnabled() {
+		return true;
+	}
+
+	@Override
+	public boolean directionFinderEnabled(long routeId, @NotNull GRoute gRoute) {
+		if (routeId == 200L
+				|| routeId == 210L) {
+			return false; // DISABLED because same trip with different direction ID
+		}
+		return super.directionFinderEnabled(routeId, gRoute);
+	}
+
+	@Override
+	public boolean mergeHeadsign(@NotNull MTrip mTrip, @NotNull MTrip mTripToMerge) {
 		throw new MTLog.Fatal("Unexpected trips to merge %s & %s!", mTrip, mTripToMerge);
 	}
 
 	private static final Pattern DIRECTION = Pattern.compile("(direction )", Pattern.CASE_INSENSITIVE);
 	private static final String DIRECTION_REPLACEMENT = "";
 
+	private static final Pattern ANDRE_LAURENDEAU_ = CleanUtils.cleanWords(Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE | Pattern.CANON_EQ, "andré-laurendeau");
+	private static final String ANDRE_LAURENDEAU_REPLACEMENT = CleanUtils.cleanWordsReplacement("A-Laurendeau");
+
+	private static final Pattern EDOUARD_MONTPETIT_ = CleanUtils.cleanWords(Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE | Pattern.CANON_EQ, "édouard-montpetit");
+	private static final String EDOUARD_MONTPETIT_REPLACEMENT = CleanUtils.cleanWordsReplacement("É-Montpetit");
+
+	@NotNull
 	@Override
-	public String cleanTripHeadsign(String tripHeadsign) {
+	public String cleanTripHeadsign(@NotNull String tripHeadsign) {
 		tripHeadsign = DIRECTION.matcher(tripHeadsign).replaceAll(DIRECTION_REPLACEMENT);
+		tripHeadsign = ANDRE_LAURENDEAU_.matcher(tripHeadsign).replaceAll(ANDRE_LAURENDEAU_REPLACEMENT);
+		tripHeadsign = EDOUARD_MONTPETIT_.matcher(tripHeadsign).replaceAll(EDOUARD_MONTPETIT_REPLACEMENT);
+		tripHeadsign = CleanUtils.removeVia(tripHeadsign);
 		tripHeadsign = CleanUtils.cleanStreetTypesFRCA(tripHeadsign);
 		return CleanUtils.cleanLabelFR(tripHeadsign);
 	}
@@ -262,16 +231,13 @@ public class RoussillonCITROUSBusAgencyTools extends DefaultAgencyTools {
 	private static final Pattern SPACE_WITH_FACE_AU = Pattern.compile("( face au )", Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE);
 	private static final Pattern SPACE_WITH_FACE = Pattern.compile("( face )", Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE);
 
-	private static final Pattern[] START_WITH_FACES = new Pattern[] { START_WITH_FACE_A, START_WITH_FACE_AU, START_WITH_FACE };
+	private static final Pattern[] START_WITH_FACES = new Pattern[]{START_WITH_FACE_A, START_WITH_FACE_AU, START_WITH_FACE};
 
-	private static final Pattern[] SPACE_FACES = new Pattern[] { SPACE_FACE_A, SPACE_WITH_FACE_AU, SPACE_WITH_FACE };
+	private static final Pattern[] SPACE_FACES = new Pattern[]{SPACE_FACE_A, SPACE_WITH_FACE_AU, SPACE_WITH_FACE};
 
-	private static final Pattern AVENUE = Pattern.compile("( avenue)", Pattern.CASE_INSENSITIVE);
-	private static final String AVENUE_REPLACEMENT = " av.";
-
+	@NotNull
 	@Override
-	public String cleanStopName(String gStopName) {
-		gStopName = AVENUE.matcher(gStopName).replaceAll(AVENUE_REPLACEMENT);
+	public String cleanStopName(@NotNull String gStopName) {
 		gStopName = Utils.replaceAll(gStopName, START_WITH_FACES, CleanUtils.SPACE);
 		gStopName = Utils.replaceAll(gStopName, SPACE_FACES, CleanUtils.SPACE);
 		gStopName = CleanUtils.cleanStreetTypesFRCA(gStopName);
@@ -279,7 +245,7 @@ public class RoussillonCITROUSBusAgencyTools extends DefaultAgencyTools {
 	}
 
 	@Override
-	public int getStopId(GStop gStop) {
-		return Integer.valueOf(getStopCode(gStop)); // using stop code as stop ID
+	public int getStopId(@NotNull GStop gStop) {
+		return Integer.parseInt(getStopCode(gStop)); // using stop code as stop ID
 	}
 }
