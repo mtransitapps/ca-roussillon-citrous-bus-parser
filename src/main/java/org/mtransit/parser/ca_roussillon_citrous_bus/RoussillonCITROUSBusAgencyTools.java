@@ -193,7 +193,7 @@ public class RoussillonCITROUSBusAgencyTools extends DefaultAgencyTools {
 	public boolean directionFinderEnabled(long routeId, @NotNull GRoute gRoute) {
 		if (routeId == 200L
 				|| routeId == 210L) {
-			return false; // DISABLED because same trip with different direction ID
+			return false; // DISABLED because similar trip with different direction ID
 		}
 		return super.directionFinderEnabled(routeId, gRoute);
 	}
