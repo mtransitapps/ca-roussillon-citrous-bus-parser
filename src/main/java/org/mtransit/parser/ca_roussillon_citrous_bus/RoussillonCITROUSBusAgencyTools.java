@@ -7,12 +7,8 @@ import org.mtransit.commons.RegexUtils;
 import org.mtransit.parser.DefaultAgencyTools;
 import org.mtransit.parser.MTLog;
 import org.mtransit.parser.gtfs.data.GRoute;
-import org.mtransit.parser.gtfs.data.GSpec;
 import org.mtransit.parser.gtfs.data.GStop;
-import org.mtransit.parser.gtfs.data.GTrip;
 import org.mtransit.parser.mt.data.MAgency;
-import org.mtransit.parser.mt.data.MRoute;
-import org.mtransit.parser.mt.data.MTrip;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -82,42 +78,16 @@ public class RoussillonCITROUSBusAgencyTools extends DefaultAgencyTools {
 	}
 
 	@Override
-	public boolean directionSplitterEnabled() {
-		return true;
-	}
-
-	@Override
-	public boolean directionSplitterEnabled(long routeId) {
-		//noinspection IfStatementWithIdenticalBranches
-		if (routeId == 200L) { // FIXME 200
-			return false; // DISABLED because similar trip with different direction ID
-		}
-		return false;
-	}
-
-	@Override
-	public void setTripHeadsign(@NotNull MRoute mRoute, @NotNull MTrip mTrip, @NotNull GTrip gTrip, @NotNull GSpec gtfs) {
-		if (mRoute.getId() == 200L) { // FIXME 200
-			mTrip.setHeadsignString(
-					cleanTripHeadsign(gTrip.getTripHeadsignOrDefault()) + " " + gTrip.getDirectionIdOrDefault(),
-					gTrip.getDirectionIdOrDefault()
-			);
-			return;
-		}
-		super.setTripHeadsign(mRoute, mTrip, gTrip, gtfs);
-	}
-
-	@Override
 	public boolean directionFinderEnabled() {
 		return true;
 	}
 
 	@Override
-	public boolean directionFinderEnabled(long routeId, @NotNull GRoute gRoute) {
-		if (routeId == 200L) { // FIXME 200
-			return false; // DISABLED because similar trip with different direction ID
+	public boolean allowNonDescriptiveHeadSigns(long routeId) {
+		if (routeId == 200L) {
+			return true; // 2 very similar trips, same head-sign, same 1st/last stops
 		}
-		return super.directionFinderEnabled(routeId, gRoute);
+		return super.allowNonDescriptiveHeadSigns(routeId);
 	}
 
 	private static final Pattern ANDRE_LAURENDEAU_ = CleanUtils.cleanWords(Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE | Pattern.CANON_EQ, "andré-laurendeau");
@@ -129,12 +99,14 @@ public class RoussillonCITROUSBusAgencyTools extends DefaultAgencyTools {
 	private static final Pattern _DASH_ = Pattern.compile("( - | – )");
 	private static final String _DASH_REPLACEMENT = "<>"; // form<>to
 
-	private static final Pattern ENDS_W_AM_PM_ = Pattern.compile("( (am|pm)$)", Pattern.CASE_INSENSITIVE);
+	private static final Pattern ENDS_W_AM_PM_ = Pattern.compile("(^(.*) (am|pm)$)", Pattern.CASE_INSENSITIVE);
+	// private static final String ENDS_W_AM_PM_KEEP_AM_PM = "$3";
+	private static final String ENDS_W_AM_PM_KEEP_TEXT = "$2";
 
 	@NotNull
 	@Override
 	public String cleanTripHeadsign(@NotNull String tripHeadsign) {
-		tripHeadsign = ENDS_W_AM_PM_.matcher(tripHeadsign).replaceAll(EMPTY);
+		tripHeadsign = ENDS_W_AM_PM_.matcher(tripHeadsign).replaceAll(ENDS_W_AM_PM_KEEP_TEXT); // remove AM/PM
 		tripHeadsign = ANDRE_LAURENDEAU_.matcher(tripHeadsign).replaceAll(ANDRE_LAURENDEAU_REPLACEMENT);
 		tripHeadsign = EDOUARD_MONTPETIT_.matcher(tripHeadsign).replaceAll(EDOUARD_MONTPETIT_REPLACEMENT);
 		tripHeadsign = _DASH_.matcher(tripHeadsign).replaceAll(_DASH_REPLACEMENT); // from - to => form<>to
