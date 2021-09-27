@@ -1,20 +1,19 @@
 package org.mtransit.parser.ca_roussillon_citrous_bus;
 
+import static org.mtransit.commons.Constants.SPACE_;
+import static org.mtransit.commons.StringUtils.EMPTY;
+
 import org.jetbrains.annotations.NotNull;
-import org.mtransit.commons.CharUtils;
+import org.jetbrains.annotations.Nullable;
 import org.mtransit.commons.CleanUtils;
 import org.mtransit.commons.RegexUtils;
 import org.mtransit.parser.DefaultAgencyTools;
-import org.mtransit.parser.MTLog;
-import org.mtransit.parser.gtfs.data.GRoute;
 import org.mtransit.parser.gtfs.data.GStop;
 import org.mtransit.parser.mt.data.MAgency;
 
-import java.util.regex.Matcher;
+import java.util.List;
+import java.util.Locale;
 import java.util.regex.Pattern;
-
-import static org.mtransit.commons.Constants.SPACE_;
-import static org.mtransit.commons.StringUtils.EMPTY;
 
 // https://exo.quebec/en/about/open-data
 // https://exo.quebec/xdata/citrous/google_transit.zip
@@ -22,6 +21,12 @@ public class RoussillonCITROUSBusAgencyTools extends DefaultAgencyTools {
 
 	public static void main(@NotNull String[] args) {
 		new RoussillonCITROUSBusAgencyTools().start(args);
+	}
+
+	@Nullable
+	@Override
+	public List<Locale> getSupportedLanguages() {
+		return LANG_FR;
 	}
 
 	@Override
@@ -41,25 +46,19 @@ public class RoussillonCITROUSBusAgencyTools extends DefaultAgencyTools {
 		return MAgency.ROUTE_TYPE_BUS;
 	}
 
-	private static final Pattern DIGITS = Pattern.compile("[\\d]+");
-
-	private static final String T = "T";
-
-	private static final long RID_STARTS_WITH_T = 20_000L;
+	@Override
+	public boolean defaultRouteIdEnabled() {
+		return true;
+	}
 
 	@Override
-	public long getRouteId(@NotNull GRoute gRoute) {
-		if (!CharUtils.isDigitsOnly(gRoute.getRouteShortName())) {
-			final Matcher matcher = DIGITS.matcher(gRoute.getRouteShortName());
-			if (matcher.find()) {
-				final int digits = Integer.parseInt(matcher.group());
-				if (gRoute.getRouteShortName().startsWith(T)) {
-					return RID_STARTS_WITH_T + digits;
-				}
-			}
-			throw new MTLog.Fatal("Unexpected route ID for %s!", gRoute);
-		}
-		return Long.parseLong(gRoute.getRouteShortName());
+	public boolean useRouteShortNameForRouteId() {
+		return true;
+	}
+
+	@Override
+	public boolean defaultRouteLongNameEnabled() {
+		return true;
 	}
 
 	@NotNull
@@ -69,12 +68,9 @@ public class RoussillonCITROUSBusAgencyTools extends DefaultAgencyTools {
 		return CleanUtils.cleanLabelFR(routeLongName);
 	}
 
-	private static final String AGENCY_COLOR = "1F1F1F"; // DARK GRAY (from GTFS)
-
-	@NotNull
 	@Override
-	public String getAgencyColor() {
-		return AGENCY_COLOR;
+	public boolean defaultAgencyColorEnabled() {
+		return true;
 	}
 
 	@Override
