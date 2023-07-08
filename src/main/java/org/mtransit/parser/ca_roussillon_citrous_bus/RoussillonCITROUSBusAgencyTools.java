@@ -8,6 +8,7 @@ import org.jetbrains.annotations.Nullable;
 import org.mtransit.commons.CleanUtils;
 import org.mtransit.commons.RegexUtils;
 import org.mtransit.parser.DefaultAgencyTools;
+import org.mtransit.parser.gtfs.data.GRoute;
 import org.mtransit.parser.gtfs.data.GStop;
 import org.mtransit.parser.mt.data.MAgency;
 
@@ -16,7 +17,6 @@ import java.util.Locale;
 import java.util.regex.Pattern;
 
 // https://exo.quebec/en/about/open-data
-// https://exo.quebec/xdata/citrous/google_transit.zip
 public class RoussillonCITROUSBusAgencyTools extends DefaultAgencyTools {
 
 	public static void main(@NotNull String[] args) {
@@ -54,6 +54,12 @@ public class RoussillonCITROUSBusAgencyTools extends DefaultAgencyTools {
 	@Override
 	public boolean useRouteShortNameForRouteId() {
 		return true;
+	}
+
+	@NotNull
+	@Override
+	public String getRouteShortName(@NotNull GRoute gRoute) {
+		return gRoute.getRouteShortName(); // used by GTFS-RT
 	}
 
 	@Override
@@ -134,6 +140,16 @@ public class RoussillonCITROUSBusAgencyTools extends DefaultAgencyTools {
 		gStopName = RegexUtils.replaceAllNN(gStopName, SPACE_FACES, CleanUtils.SPACE);
 		gStopName = CleanUtils.cleanStreetTypesFRCA(gStopName);
 		return CleanUtils.cleanLabelFR(gStopName);
+	}
+
+	@NotNull
+	@Override
+	public String getStopCode(@NotNull GStop gStop) {
+		if ("0".equals(gStop.getStopCode())) {
+			return EMPTY;
+		}
+		//noinspection deprecation
+		return gStop.getStopId(); // used by GTFS-RT
 	}
 
 	@Override
