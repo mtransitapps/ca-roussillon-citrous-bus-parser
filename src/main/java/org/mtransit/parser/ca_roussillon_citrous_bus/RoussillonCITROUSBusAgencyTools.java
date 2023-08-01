@@ -1,6 +1,11 @@
 package org.mtransit.parser.ca_roussillon_citrous_bus;
 
 import static org.mtransit.commons.Constants.SPACE_;
+import static org.mtransit.commons.RegexUtils.ANY;
+import static org.mtransit.commons.RegexUtils.DIGITS;
+import static org.mtransit.commons.RegexUtils.group;
+import static org.mtransit.commons.RegexUtils.oneOrMore;
+import static org.mtransit.commons.RegexUtils.or;
 import static org.mtransit.commons.StringUtils.EMPTY;
 
 import org.jetbrains.annotations.NotNull;
@@ -37,7 +42,7 @@ public class RoussillonCITROUSBusAgencyTools extends DefaultAgencyTools {
 	@NotNull
 	@Override
 	public String getAgencyName() {
-		return "exo Roussillon";
+		return "exo Le Richelain / Roussillon";
 	}
 
 	@NotNull
@@ -84,19 +89,24 @@ public class RoussillonCITROUSBusAgencyTools extends DefaultAgencyTools {
 		return true;
 	}
 
-	@Override
-	public boolean allowNonDescriptiveHeadSigns(long routeId) {
-		if (routeId == 200L) {
-			return true; // 2 very similar trips, same head-sign, same 1st/last stops
-		}
-		return super.allowNonDescriptiveHeadSigns(routeId);
-	}
-
+	// @Override
+	// public boolean allowNonDescriptiveHeadSigns(long routeId) {
+	// 	if (routeId == 200L) {
+	// 		return true; // 2 very similar trips, same head-sign, same 1st/last stops
+	// 	}
+	// 	return super.allowNonDescriptiveHeadSigns(routeId);
+	// }
+	//
 	private static final Pattern ANDRE_LAURENDEAU_ = CleanUtils.cleanWords(Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE | Pattern.CANON_EQ, "andré-laurendeau");
 	private static final String ANDRE_LAURENDEAU_REPLACEMENT = CleanUtils.cleanWordsReplacement("A-Laurendeau");
 
 	private static final Pattern EDOUARD_MONTPETIT_ = CleanUtils.cleanWords(Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE | Pattern.CANON_EQ, "édouard-montpetit");
 	private static final String EDOUARD_MONTPETIT_REPLACEMENT = CleanUtils.cleanWordsReplacement("É-Montpetit");
+
+	private static final Pattern CW_CCW_FR_ = Pattern.compile(
+			group(oneOrMore(ANY) + " " + group(or("anti\\-horaire", "horaire"))),
+			Pattern.CASE_INSENSITIVE);
+	private static final String CW_CCW_FR_REPLACEMENT = "$2";
 
 	private static final Pattern _DASH_ = Pattern.compile("( - | – )");
 	private static final String _DASH_REPLACEMENT = "<>"; // form<>to
@@ -111,6 +121,7 @@ public class RoussillonCITROUSBusAgencyTools extends DefaultAgencyTools {
 		tripHeadsign = ENDS_W_AM_PM_.matcher(tripHeadsign).replaceAll(ENDS_W_AM_PM_KEEP_TEXT); // remove AM/PM
 		tripHeadsign = ANDRE_LAURENDEAU_.matcher(tripHeadsign).replaceAll(ANDRE_LAURENDEAU_REPLACEMENT);
 		tripHeadsign = EDOUARD_MONTPETIT_.matcher(tripHeadsign).replaceAll(EDOUARD_MONTPETIT_REPLACEMENT);
+		tripHeadsign = CW_CCW_FR_.matcher(tripHeadsign).replaceAll(CW_CCW_FR_REPLACEMENT);
 		tripHeadsign = _DASH_.matcher(tripHeadsign).replaceAll(_DASH_REPLACEMENT); // from - to => form<>to
 		tripHeadsign = CleanUtils.removeVia(tripHeadsign);
 		tripHeadsign = CleanUtils.cleanStreetTypesFRCA(tripHeadsign);
